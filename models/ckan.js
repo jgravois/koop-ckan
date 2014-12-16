@@ -8,7 +8,7 @@ var ckan = function( koop ){
   ckan.__proto__ = BaseModel( koop );
 
   // adds a service to the koop.Cache.db
-  // needs a host, generates an id 
+  // needs a host, generates an id
   ckan.register = function( id, host, callback ){
     var type = 'ckan:services';
     koop.Cache.db.serviceCount( type, function(error, count){
@@ -21,7 +21,7 @@ var ckan = function( koop ){
 
   ckan.remove = function( id, callback ){
     koop.Cache.db.serviceRemove( 'ckan:services', parseInt(id) || id,  callback);
-  }; 
+  };
 
   // get service by id, no id == return all
   ckan.find = function( id, callback ){
@@ -30,6 +30,7 @@ var ckan = function( koop ){
 
   ckan.ckan_path = '/api/3/action/package_show';
   ckan.ckan_list_path = '/api/3/action/package_list';
+  ckan.datastore_path = '/datastore/dump/';
 
   ckan.getAll = function( host, options, callback ){
     var self = this;
@@ -50,11 +51,15 @@ var ckan = function( koop ){
   ckan.getResource = function( host, id, options, callback ){
     var self = this,
       type = 'ckan',
-      key = [host,id].join('::'); 
+      key = [host,id].join('::');
 
     koop.Cache.get( type, key, options, function(err, entry ){
       if ( err ){
-        var url = host + self.ckan_path + '?id='+ id;
+
+        //we need an if/else to support DataStore API and the existing one
+        //var url = host + self.ckan_path + '?id='+ id;
+        var url = host + self.datastore_path + id;
+
         request.get(url, function(err, data, response ){
           if (err) {
             callback(err, null);
@@ -74,7 +79,7 @@ var ckan = function( koop ){
                       koop.GeoJSON.fromCSV( csv_data, function(err, geojson){
                         koop.Cache.insert( type, key, geojson, 0, function( err, success){
                           if ( success ) callback( null, [geojson] );
-                        }); 
+                        });
                       });
                     });
                   });
@@ -106,7 +111,7 @@ var ckan = function( koop ){
     var lapsed = (new Date().getTime() - data.updated_at);
     if (typeof(data.updated_at) == "undefined" || (lapsed > (1000*60*60))){
       callback(null, false);
-    } else { 
+    } else {
       request.get(url, function( err, data, response ){
         if (err) {
           callback( err, null );
@@ -147,7 +152,7 @@ var ckan = function( koop ){
   return ckan;
 
 };
-  
+
 
 module.exports = ckan;
-  
+
