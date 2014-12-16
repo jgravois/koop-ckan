@@ -53,52 +53,30 @@ var ckan = function( koop ){
       type = 'ckan',
       key = [host,id].join('::');
 
-    koop.Cache.get( type, key, options, function(err, entry ){
-      if ( err ){
+    koop.Cache.get(type, key, options, function(err, entry) {
 
+      if (err) {
         //we need an if/else to support DataStore API and the existing one
         //var url = host + self.ckan_path + '?id='+ id;
         var url = host + self.datastore_path + id;
-
-        request.get(url, function(err, data, response ){
-          if (err) {
-            callback(err, null);
+        request.get(url, function(err, data, res) {
+          if (!err) {
+            csv.parse(res, function(err, csv_data) {
+              koop.GeoJSON.fromCSV(csv_data, function(err, geojson) {
+                koop.Cache.insert(type, key, geojson, 0, function(err, success) {
+                  if (success) callback(null, [geojson]);
+                });
+              });
+            });
           } else {
-            try {
-              var result = JSON.parse(response).result,
-                item_url;
-              if ( result ){
-                for (var i = 0; i < result.resources.length; i++){
-                  if (result.resources[i].format == 'CSV'){
-                    item_url = result.resources[i].url;
-                  }
-                }
-                if ( item_url ){
-                  request.get(item_url, function(err, data, res){
-                    csv.parse( res, function(err, csv_data){
-                      koop.GeoJSON.fromCSV( csv_data, function(err, geojson){
-                        koop.Cache.insert( type, key, geojson, 0, function( err, success){
-                          if ( success ) callback( null, [geojson] );
-                        });
-                      });
-                    });
-                  });
-                } else {
-                  callback('no CSV resources found', null);
-                }
-              } else {
-                callback('no CSV resources found', null);
-              }
-            } catch(e){
-              callback('Resource not found', null);
-            }
+            callback('error downloading CSV', null);
           }
         });
+
       } else {
-        callback( null, entry );
+        callback(null, entry);
       }
     });
-
   };
 
   // compares the sha on the cached data and the hosted data
