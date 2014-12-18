@@ -1,3 +1,31 @@
+/*
+
+curl --data "host=http://www.civicdata.com&id=accela" localhost:1337/ckan
+curl --data "host=http://www.civicdata.com&id=accela" http://whispering-temple-3513.herokuapp.com/ckan
+
+individual items
+e53f0901-62fb-443d-a22c-9a5afc851aef
+bfd101f6-1875-4803-aa1f-5fef91e53303
+c0f1d950-3b2a-4640-9bd6-85bf021431ae
+
+koop provider operations
+/api/3/action/package_show
+/api/3/action/package_list
+
+added another DataStore API path
+http://docs.ckan.org/en/847-new-theming-docs/datastore.html#the-datastore-api
+
+DataStore API lets you make requests for CSVs like this
+http://www.civicdata.com/datastore/dump/e53f0901-62fb-443d-a22c-9a5afc851aef
+http://www.civicdata.com/api/3/action/datastore_search?resource_id=e53f0901-62fb-443d-a22c-9a5afc851aef
+
+not sure if/how, but we should check CKAN resource for DataStore support.  currently i have it hardcoded in.
+
+http://localhost:1337/ckan/accela/e53f0901-62fb-443d-a22c-9a5afc851aef
+http://whispering-temple-3513.herokuapp.com
+
+*/
+
 var request = require('request'),
   csv = require('csv'),
   BaseModel = require('koop-server/lib/BaseModel.js');
@@ -30,6 +58,9 @@ var ckan = function( koop ){
 
   ckan.ckan_path = '/api/3/action/package_show';
   ckan.ckan_list_path = '/api/3/action/package_list';
+
+  // DataStore API lets you make requests for CSV like the following
+  // http://docs.ckan.org/en/847-new-theming-docs/datastore.html#the-datastore-api
   ckan.datastore_path = '/datastore/dump/';
 
   ckan.getAll = function( host, options, callback ){
